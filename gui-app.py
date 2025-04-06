@@ -4,55 +4,84 @@ import tkinter as tk
 import customtkinter as ctk
 import time
 
-def start_function():
-    print("Start function triggered")
+class StreamRecorderApp:
+    def __init__(self):
+        self.root = ctk.CTk()
+        self.root.title("Stream recorder")
+        self.root.geometry("300x200")
 
-def stop_function():
-    print("Stop function triggered")
+        self.camera_connected = False
+        self.timer_running = False
+        self.start_time = 0
 
-def main():
-    # Initialize the main window
-    root = ctk.CTk()
-    root.title("Stream recorder")
-    root.geometry("200x200")
+        self.create_widgets()
 
-    # Create a timer label
-    timer_label = ctk.CTkLabel(root, text="Timer: 00h 00m 00s")
-    timer_label.pack(pady=10)
+    def create_widgets(self):
+        # Camera button
+        self.camera_button = ctk.CTkButton(self.root, text="Connect", command=self.toggle_camera)
+        self.camera_button.pack(pady=10)
 
-    # Timer state
-    timer_running = [False]  # Use a mutable object to allow modification in nested function
-    start_time = [0]
+        # Timer label
+        self.timer_label = ctk.CTkLabel(self.root, text="Timer: 00h 00m 00s")
+        self.timer_label.pack(pady=10)
 
-    # Create a button with toggle functionality
-    def toggle_button():
-        if button.cget("text") == "Start":
-            button.configure(text="Stop")
-            start_function()
-            timer_running[0] = True
-            start_time[0] = time.time()
-            update_timer()
+        # Record button
+        self.record_button = ctk.CTkButton(self.root, text="Start", command=self.toggle_record, state="disabled")
+        self.record_button.pack(pady=10)
+
+    def toggle_camera(self):
+        if self.camera_button.cget("text") == "Connect":
+            self.camera_button.configure(text="Disconnect")
+            self.camera_connect()
+            self.camera_connected = True
+            self.record_button.configure(state="normal")  # Enable the Start button
         else:
-            button.configure(text="Start")
-            stop_function()
-            timer_running[0] = False
-            timer_label.configure(text="Timer: 0")
+            self.camera_button.configure(text="Connect")
+            self.camera_disconnect()
+            self.camera_connected = False
+            self.record_button.configure(state="disabled")  # Disable the Start button
 
-    # Update the timer
-    def update_timer():
-        if timer_running[0]:
-            elapsed_time = int(time.time() - start_time[0])
+    def toggle_record(self):
+        if self.record_button.cget("text") == "Start":
+            self.record_button.configure(text="Stop")
+            self.start_function()
+            self.timer_running = True
+            self.start_time = time.time()
+            self.update_timer()
+        else:
+            self.record_button.configure(text="Start")
+            self.stop_function()
+            self.timer_running = False
+            self.timer_label.configure(text="Timer: 00h 00m 00s")
+
+    def update_timer(self):
+        if self.timer_running:
+            elapsed_time = int(time.time() - self.start_time)
             hours, remainder = divmod(elapsed_time, 3600)
             minutes, seconds = divmod(remainder, 60)
-            timer_label.configure(text=f"Timer: {hours:02d}h {minutes:02d}m {seconds:02d}s")
-            root.after(1000, update_timer)
+            self.timer_label.configure(text=f"Timer: {hours:02d}h {minutes:02d}m {seconds:02d}s")
+            self.root.after(1000, self.update_timer)
 
-    button = ctk.CTkButton(root, text="Start", command=toggle_button)
-    button.pack(pady=10)
+    @staticmethod
+    def camera_connect():
+        print("Camera connected")
 
-    # Start the main loop
-    root.mainloop()
+    @staticmethod
+    def camera_disconnect():
+        print("Camera disconnected")
+
+    @staticmethod
+    def start_function():
+        print("Start function triggered")
+
+    @staticmethod
+    def stop_function():
+        print("Stop function triggered")
+
+    def run(self):
+        self.root.mainloop()
 
 if __name__ == "__main__":
     print("Starting GUI application...")
-    main()
+    app = StreamRecorderApp()
+    app.run()
